@@ -536,13 +536,15 @@ esp_err_t tinyusb_init(tinyusb_device_config_t *config) {
     tinyusb_config_t tusb_cfg = {
             .external_phy = false // In the most cases you need to use a `false` value
     };
-    esp_err_t err = tinyusb_driver_install(&tusb_cfg);
-    if (err != ESP_OK) {
+    // NOTE: this returns esp_err_t but has a bug and actually ends up returning a bool,
+    //       so lets just pretend it's a bool for now
+    bool ret = tinyusb_driver_install(&tusb_cfg);
+    if (!ret) {
         initialized = false;
-        return err;
+        return ESP_FAIL;
     }
     xTaskCreate(usb_device_task, "usbd", 4096, NULL, configMAX_PRIORITIES - 1, NULL);
-    return err;
+    return ESP_OK;
 }
 
 void usb_persist_restart(restart_type_t mode)
